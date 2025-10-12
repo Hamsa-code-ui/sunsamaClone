@@ -1,6 +1,33 @@
 import './homepage.css'
+import { useRef } from 'react'
 
 export function HomePage() {
+    const days = [
+        { name: 'Thursday', date: 'October 9' },
+        { name: 'Friday', date: 'October 10' },
+        { name: 'Saturday', date: 'October 11' },
+        { name: 'Sunday', date: 'October 12' },
+        { name: 'Monday', date: 'October 13' },
+        { name: 'Tuesday', date: 'October 14' },
+        { name: 'Wednesday', date: 'October 15' },
+        { name: 'Thursday', date: 'October 16' },
+        { name: 'Friday', date: 'October 17' },
+        { name: 'Saturday', date: 'October 18' },
+    ]
+
+    const daysRef = useRef<HTMLDivElement | null>(null)
+
+    function handleWheel(e: React.WheelEvent) {
+        const el = daysRef.current
+        if (!el) return
+
+        // If the wheel movement is primarily vertical, scroll horizontally.
+        if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+            el.scrollLeft += e.deltaY
+            e.preventDefault()
+        }
+    }
+
     return (
         <div className="app">
             <aside className="sidebar">
@@ -31,31 +58,19 @@ export function HomePage() {
                     </div>
                 </header>
 
-                <section className="days">
-                    <div className="day-col">
-                        <div className="day-head">
-                            <div className="day-name">Thursday</div>
-                            <div className="day-date">October 9</div>
-                        </div>
-                        <div className="add-task">+ Add task</div>
-                        <div className="note">2 tasks moved to archive</div>
-                    </div>
-
-                    <div className="day-col">
-                        <div className="day-head">
-                            <div className="day-name">Friday</div>
-                            <div className="day-date">October 10</div>
-                        </div>
-                        <div className="add-task small">+</div>
-                    </div>
-
-                    <div className="day-col">
-                        <div className="day-head">
-                            <div className="day-name">Saturday</div>
-                            <div className="day-date">October 11</div>
-                        </div>
-                        <div className="add-task small">+</div>
-                    </div>
+                <section className="days" ref={daysRef} onWheel={handleWheel}>
+                    {days.map((day) => {
+                        return (
+                            <div className="day-col" key={day.date + day.name}>
+                                <div className="day-head">
+                                    <div className="day-name">{day.name}</div>
+                                    <div className="day-date">{day.date}</div>
+                                </div>
+                                <div className="add-task">+ Add task</div>
+                                <div className="note">2 tasks moved to archive</div>
+                            </div>
+                        )
+                    })}
                 </section>
             </main>
 

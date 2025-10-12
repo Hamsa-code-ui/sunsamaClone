@@ -28,14 +28,17 @@ body{
 .section{margin-top:12px;color:var(--muted);font-size:12px;text-transform:uppercase}
 .invite{margin-top:auto;color:var(--muted);font-size:13px}
 
-.board{flex:1;padding:18px 22px 22px 28px;display:flex;flex-direction:column;gap:12px}
+.board{flex:1;padding:18px 22px 22px 28px;display:flex;flex-direction:column;gap:12px;min-width:0}
 .board-header{display:flex;align-items:center;justify-content:space-between}
 .btn{background:var(--card);border:1px solid rgba(255,255,255,0.03);color:var(--text);padding:8px 12px;border-radius:6px}
 .btn.ghost{background:transparent}
 .btn.small{font-size:13px;padding:6px 10px}
 
-.days{display:flex;gap:18px;align-items:flex-start}
-.day-col{background:transparent;flex:1;min-width:260px}
+.days{display:flex;gap:18px;align-items:flex-start;overflow-x:auto;padding-bottom:6px;scroll-behavior:smooth}
+.days::-webkit-scrollbar{height:10px}
+.days::-webkit-scrollbar-track{background:transparent}
+.days::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.06);border-radius:6px}
+.day-col{background:transparent;flex:0 0 280px;min-width:260px; display:flex;flex-direction:column;min-height:500px}
 .day-head{margin-bottom:12px}
 .day-name{font-weight:600;font-size:20px}
 .day-date{color:var(--muted);font-size:13px}
