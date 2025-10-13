@@ -1,21 +1,39 @@
 import './homepage.css'
-import { useRef } from 'react'
+/*import { useQuery } from 'convex/react'
+import { api } from '../convex/_generated/api'*/
+import { useRef, useState, useEffect } from 'react'
 
 export function HomePage() {
-    const days = [
-        { name: 'Thursday', date: 'October 9' },
-        { name: 'Friday', date: 'October 10' },
-        { name: 'Saturday', date: 'October 11' },
-        { name: 'Sunday', date: 'October 12' },
-        { name: 'Monday', date: 'October 13' },
-        { name: 'Tuesday', date: 'October 14' },
-        { name: 'Wednesday', date: 'October 15' },
-        { name: 'Thursday', date: 'October 16' },
-        { name: 'Friday', date: 'October 17' },
-        { name: 'Saturday', date: 'October 18' },
-    ]
+    // utils/generateDays.ts
+    function generateDays(center = new Date(), daysBefore = 30, daysAfter = 30) {
+        const result: { id: string; name: string; date: string; fullDate: Date }[] = [];
+        const start = new Date(center);
+        start.setDate(start.getDate() - daysBefore);
 
-    const daysRef = useRef<HTMLDivElement | null>(null)
+        for (let i = 0; i <= daysBefore + daysAfter; i++) {
+            const d = new Date(start);
+            d.setDate(start.getDate() + i);
+            result.push({
+                id: d.toISOString().split("T")[0],
+                name: d.toLocaleDateString("de-DE", { weekday: "long" }),
+                date: d.toLocaleDateString("de-DE", { day: "2-digit", month: "long" }),
+                fullDate: d
+            });
+        }
+
+        return result;
+    }
+
+
+    const days = generateDays();
+    let todayIndex = 30; // weil wir 30 Tage vor und 30 Tage nach generieren
+    const daysRef = useRef<HTMLDivElement | null>(null);
+    const [selectedDate, setSelectedDate] = useState(days[todayIndex].id);
+    todayIndex = todayIndex - 1;
+
+
+    // const days = useQuery(api.daysData.da, { totalDays: 60 }) || []
+
 
     function handleWheel(e: React.WheelEvent) {
         const el = daysRef.current
@@ -27,6 +45,26 @@ export function HomePage() {
             e.preventDefault()
         }
     }
+
+    useEffect(() => {
+        const container = daysRef.current;
+        const todayEl = container?.children[todayIndex] as HTMLElement;
+        if (!container || !todayEl) return;
+
+
+        // Abstand zwischen Element und Container-Linker Kante
+        //const elementOffset = todayRect.left - containerRect.left;
+
+        // Ziel: Element-Mitte in Container-Mitte
+
+        const leftPos = todayEl.offsetLeft
+
+        container.scrollTo({
+            left: leftPos,
+            behavior: "instant", // oder "smooth"
+        });
+    }, []);
+
 
     return (
         <div className="app">
