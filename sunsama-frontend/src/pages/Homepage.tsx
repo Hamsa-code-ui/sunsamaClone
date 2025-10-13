@@ -1,7 +1,7 @@
 import './homepage.css'
 /*import { useQuery } from 'convex/react'
 import { api } from '../convex/_generated/api'*/
-import { useRef, useState, useEffect } from 'react'
+import { useRef, /*useState*/ useEffect } from 'react'
 
 export function HomePage() {
     // utils/generateDays.ts
@@ -28,7 +28,7 @@ export function HomePage() {
     const days = generateDays();
     let todayIndex = 30; // weil wir 30 Tage vor und 30 Tage nach generieren
     const daysRef = useRef<HTMLDivElement | null>(null);
-    const [selectedDate, setSelectedDate] = useState(days[todayIndex].id);
+    //const [selectedDate, setSelectedDate] = useState(days[todayIndex].id);
     todayIndex = todayIndex - 1;
 
 

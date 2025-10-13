@@ -1,4 +1,4 @@
-import { query, QueryCtx, Mutation, MutationCtx} from "./_generated/server";                        // Importiert die Convex-Funktion 'query', mit der man serverseitige Leseabfragen definiert.
+/*import { query, QueryCtx, Mutation, MutationCtx} from "./_generated/server";                        // Importiert die Convex-Funktion 'query', mit der man serverseitige Leseabfragen definiert.
 
 export const getDays = query({                                      // Definiert eine neue Convex-Query mit dem Namen 'getDays'.
   args : { totalDays: "number"},
@@ -31,4 +31,4 @@ export const addDays = Mutation({
     });
   }
 })
-
+*/
