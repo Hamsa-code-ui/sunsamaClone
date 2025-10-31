@@ -1,14 +1,29 @@
 import './homepage.css'
-/*import { useQuery } from 'convex/react'
-import { api } from '../convex/_generated/api'*/
-import { useRef, /*useState*/ useEffect } from 'react'
+import { useQuery, useMutation } from 'convex/react'
+import { api } from '../../convex/_generated/api'
+import { formatTime } from '../utils/time'
+import { useRef, useEffect, useState, useMemo } from 'react'
+import type { DataModel } from '../../convex/_generated/dataModel'
+
+// Derive the Project and Subtask types from Convex's generated DataModel.
+type Project = DataModel["projects"]["document"];
+type Subtask = Project["subtasks"][number];
 
 export function HomePage() {
+    const toggleSubtask = useMutation(api.projects.setSubtaskChecked)
+
+
     // utils/generateDays.ts
     function generateDays(center = new Date(), daysBefore = 30, daysAfter = 30) {
-        const result: { id: string; name: string; date: string; fullDate: Date }[] = [];
+        const result: {
+            id: string;
+            name: string;
+            date: string;
+            fullDate: Date
+        }[] = [];
         const start = new Date(center);
         start.setDate(start.getDate() - daysBefore);
+
 
         for (let i = 0; i <= daysBefore + daysAfter; i++) {
             const d = new Date(start);
@@ -19,17 +34,43 @@ export function HomePage() {
                 date: d.toLocaleDateString("de-DE", { day: "2-digit", month: "long" }),
                 fullDate: d
             });
+
         }
 
         return result;
+
     }
 
 
     const days = generateDays();
-    let todayIndex = 30; // weil wir 30 Tage vor und 30 Tage nach generieren
+    let todayIndex = 29; // we generated 30 days before and 30 after, use index 29 (0-based) to show today
     const daysRef = useRef<HTMLDivElement | null>(null);
     //const [selectedDate, setSelectedDate] = useState(days[todayIndex].id);
     todayIndex = todayIndex - 1;
+
+    /*interface Project {
+        _id: v.id;
+        title: string;
+        date?: string;
+        plannedTime?: number;
+        subtasks: Subtask[];
+        // add more fields here if your project objects include them
+    }*/
+
+    // The generated `api` typings may be empty locally if Convex's codegen hasn't run.
+    // Call the query and keep an optimistic local copy for immediate UI updates.
+    const projectsQueryResult = useQuery(api.projects.getProjects);
+    const projectsQuery = useMemo(() => (projectsQueryResult ?? []) as Project[], [projectsQueryResult]);
+    const [localProjects, setLocalProjects] = useState<Project[]>(projectsQuery);
+    // Track pending toggles to avoid duplicate requests and repeated flips.
+    const [pendingToggles, setPendingToggles] = useState<Record<string, boolean>>({});
+
+    useEffect(() => {
+        setLocalProjects(projectsQuery);
+    }, [projectsQuery]);
+
+
+
 
 
     // const days = useQuery(api.daysData.da, { totalDays: 60 }) || []
@@ -61,9 +102,9 @@ export function HomePage() {
 
         container.scrollTo({
             left: leftPos,
-            behavior: "instant", // oder "smooth"
+            behavior: "instant", // or "smooth"
         });
-    }, []);
+    }, [todayIndex]);
 
 
     return (
@@ -105,7 +146,79 @@ export function HomePage() {
                                     <div className="day-date">{day.date}</div>
                                 </div>
                                 <div className="add-task">+ Add task</div>
-                                <div className="note">2 tasks moved to archive</div>
+                                {localProjects.map((project: Project) => {
+                                    if (project.date === day.id) {
+                                        return (
+                                            <div className="task" key={project._id}>
+                                                <div className="task-project">
+                                                    <div className='task-header'>
+                                                        <div className="task-name">{project.title}</div>
+                                                        <div className="time-badge">{formatTime(project.plannedTime ?? 0)}</div>
+                                                    </div>
+                                                    <div className='task-middlesection'>
+                                                        {project.subtasks?.map((subtask: Subtask, idx: number) => {
+                                                            const toggleKey = `${project._id}::${subtask.title}`;
+                                                            const inFlight = !!pendingToggles[toggleKey];
+                                                            return (
+                                                                <div className="subtask" key={idx}>
+                                                                    <button
+                                                                        className='subtask-checked-btn'
+                                                                        disabled={inFlight}
+                                                                        aria-busy={inFlight}
+                                                                        onClick={async () => {
+                                                                            if (inFlight) return;
+                                                                            // optimistic update
+                                                                            setLocalProjects(prev => prev.map(p => {
+                                                                                if (p._id !== project._id) return p;
+                                                                                return {
+                                                                                    ...p,
+                                                                                    subtasks: p.subtasks.map((s: Subtask) => s.title === subtask.title ? { ...s, isDone: !s.isDone } : s)
+                                                                                }
+                                                                            }));
+                                                                            setPendingToggles(prev => ({ ...prev, [toggleKey]: true }));
+                                                                            try {
+                                                                                await toggleSubtask({ taskId: project._id, subTaskName: subtask.title });
+                                                                            } catch (err) {
+                                                                                // rollback on error
+                                                                                setLocalProjects(projectsQuery);
+                                                                                console.error('toggleSubtask failed', err);
+                                                                            } finally {
+                                                                                setPendingToggles(prev => { const copy = { ...prev }; delete copy[toggleKey]; return copy; });
+                                                                            }
+                                                                        }}
+                                                                    >
+                                                                        <img className="subtask-icon" src={
+                                                                            subtask.isDone
+                                                                                ? "/icons/checked.png"
+                                                                                : "/icons/check-mark.png"}
+                                                                            alt={subtask.isDone ? "checked" : "unchecked"} />
+                                                                    </button>
+                                                                    <div className='subtask-title'>{subtask.title}</div>
+                                                                </div>
+                                                            )
+                                                        })}
+                                                    </div>
+                                                    <div className="task-footer">
+                                                        <div className="footer-icons">
+                                                            {/* comment icon */}
+                                                            <svg className="footer-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                                                                <path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                                                            </svg>
+
+                                                            {/* stopwatch / timer icon */}
+                                                            <svg className="footer-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                                                                <path d="M12 8v5l3 2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                                                                <path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                                                            </svg>
+                                                        </div>
+                                                        <div className="tag"># work</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    }
+                                    return null;
+                                })}
                             </div>
                         )
                     })}
