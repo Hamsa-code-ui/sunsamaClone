@@ -161,9 +161,14 @@ export function HomePage() {
                                                             const inFlight = !!pendingToggles[toggleKey];
                                                             return (
                                                                 <div className="subtask" key={idx}>
-                                                                    <button
-                                                                        className='subtask-checked-btn'
-                                                                        disabled={inFlight}
+                                                                    <img
+                                                                        //className='subtask-checked-btn'
+                                                                        //disabled={inFlight}
+                                                                        className="subtask-icon" src={
+                                                                            subtask.isDone
+                                                                                ? "/icons/checked-mark.png"
+                                                                                : "/icons/unchecked-mark.png"}
+                                                                            alt={subtask.isDone ? "checked" : "unchecked"} 
                                                                         aria-busy={inFlight}
                                                                         onClick={async () => {
                                                                             if (inFlight) return;
@@ -187,12 +192,8 @@ export function HomePage() {
                                                                             }
                                                                         }}
                                                                     >
-                                                                        <img className="subtask-icon" src={
-                                                                            subtask.isDone
-                                                                                ? "/icons/checked.png"
-                                                                                : "/icons/check-mark.png"}
-                                                                            alt={subtask.isDone ? "checked" : "unchecked"} />
-                                                                    </button>
+                                                                
+                                                                    </img>
                                                                     <div className='subtask-title'>{subtask.title}</div>
                                                                 </div>
                                                             )
