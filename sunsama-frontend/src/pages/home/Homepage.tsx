@@ -1,9 +1,10 @@
 import './homepage.css'
 import { useQuery, useMutation } from 'convex/react'
-import { api } from '../../convex/_generated/api'
-import { formatTime } from '../utils/time'
+import { api } from '../../../convex/_generated/api'
+import { formatTime } from '../../utils/time'
 import { useRef, useEffect, useState, useMemo } from 'react'
-import type { DataModel } from '../../convex/_generated/dataModel'
+import type { DataModel } from '../../../convex/_generated/dataModel'
+import ProgressBar from './ProgressBar'
 
 // Derive the Project and Subtask types from Convex's generated DataModel.
 type Project = DataModel["projects"]["document"];
@@ -106,7 +107,6 @@ export function HomePage() {
         });
     }, [todayIndex]);
 
-
     return (
         <div className="app">
             <aside className="sidebar">
@@ -147,6 +147,10 @@ export function HomePage() {
                                 </div>
                                 <div className="add-task">+ Add task</div>
                                 {localProjects.map((project: Project) => {
+                                    const total = project.subtasks?.length || 0;
+                                    const done = project.subtasks?.filter((s : Subtask) => s.isDone).length || 0;
+                                    const progress = total > 0 ? Math.round((done / total) * 100) : 0;
+
                                     if (project.date === day.id) {
                                         return (
                                             <div className="task" key={project._id}>
@@ -155,6 +159,7 @@ export function HomePage() {
                                                         <div className="task-name">{project.title}</div>
                                                         <div className="time-badge">{formatTime(project.plannedTime ?? 0)}</div>
                                                     </div>
+                                                    <ProgressBar progress={progress} />
                                                     <div className='task-middlesection'>
                                                         {project.subtasks?.map((subtask: Subtask, idx: number) => {
                                                             const toggleKey = `${project._id}::${subtask.title}`;
@@ -168,7 +173,7 @@ export function HomePage() {
                                                                             subtask.isDone
                                                                                 ? "/icons/checked-mark.png"
                                                                                 : "/icons/unchecked-mark.png"}
-                                                                            alt={subtask.isDone ? "checked" : "unchecked"} 
+                                                                        alt={subtask.isDone ? "checked" : "unchecked"}
                                                                         aria-busy={inFlight}
                                                                         onClick={async () => {
                                                                             if (inFlight) return;
@@ -192,7 +197,7 @@ export function HomePage() {
                                                                             }
                                                                         }}
                                                                     >
-                                                                
+
                                                                     </img>
                                                                     <div className='subtask-title'>{subtask.title}</div>
                                                                 </div>
