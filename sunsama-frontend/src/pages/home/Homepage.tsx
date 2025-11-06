@@ -70,6 +70,35 @@ export function HomePage() {
         setLocalProjects(projectsQuery);
     }, [projectsQuery]);
 
+    // Editor state for the 'Add task' panel
+    const [editor, setEditor] = useState<{ open: boolean; dayId?: string; title?: string; tag?: string; timeEstimate?: number }>({ open: false });
+
+    function openEditor(dayId: string) {
+        setEditor({ open: true, dayId, title: '', tag: '# work', timeEstimate: 30 });
+        // ensure board is scrolled to the day (optional) - not changing here
+    }
+
+    function closeEditor() {
+        setEditor({ open: false });
+    }
+
+    function saveEditor() {
+        if (!editor.dayId) return closeEditor();
+        const newTask = {
+            // minimal preview fields - Convex doc may include more fields, this is local-only preview
+            _id: `local-${Date.now()}`,
+            title: editor.title || 'New task',
+            date: editor.dayId,
+            plannedTime: editor.timeEstimate ?? 0,
+            subtasks: [],
+            // optional tag handled only in UI preview
+            tag: editor.tag,
+        } as unknown as Project;
+
+        setLocalProjects(prev => [newTask, ...prev]);
+        closeEditor();
+    }
+
 
 
 
@@ -145,7 +174,7 @@ export function HomePage() {
                                     <div className="day-name">{day.name}</div>
                                     <div className="day-date">{day.date}</div>
                                 </div>
-                                <div className="add-task">+ Add task</div>
+                                <button className="add-task" onClick={() => openEditor(day.id)}>+ Add task</button>
                                 {localProjects.map((project: Project) => {
                                     const total = project.subtasks?.length || 0;
                                     const done = project.subtasks?.filter((s : Subtask) => s.isDone).length || 0;
@@ -229,6 +258,58 @@ export function HomePage() {
                         )
                     })}
                 </section>
+
+                {editor.open && (
+                    <>
+                        <div className="editor-backdrop" onClick={closeEditor} />
+                        <div className="task-editor" role="dialog" aria-modal="true">
+                            <input
+                                className="editor-title"
+                                placeholder="Task title"
+                                value={editor.title}
+                                onChange={(e) => setEditor(s => ({ ...s, title: e.target.value }))}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Escape') {
+                                        closeEditor();
+                                    } else if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        saveEditor();
+                                    }
+                                }}
+                            />
+                            <div className="editor-footer">
+                                <div className="editor-left">
+                                    <label className="editor-label">
+                                        <img src="/icons/calendar.png" alt="calendar" />
+                                        <select className="editor-select" value={editor.dayId} onChange={(e) => setEditor(s => ({ ...s, dayId: e.target.value }))}>
+                                            {days.map(d => (
+                                                <option key={d.id} value={d.id}>{d.name}</option>
+                                            ))}
+                                        </select>
+                                    </label>
+                                    <label className="editor-label">
+                                        Est. time
+                                        <select className="editor-select" value={editor.timeEstimate} onChange={(e) => setEditor(s => ({ ...s, timeEstimate: Number(e.target.value) }))}>
+                                            <option value={15}>15</option>
+                                            <option value={30}>30</option>
+                                            <option value={45}>45</option>
+                                            <option value={60}>60</option>
+                                        </select>
+                                    </label>
+                                    <label className="editor-label">
+                                        Tag
+                                        <select className="editor-select" value={editor.tag} onChange={(e) => setEditor(s => ({ ...s, tag: e.target.value }))}>
+                                            <option value="# work"># work</option>
+                                            <option value="# personal"># personal</option>
+                                            <option value="# errands"># errands</option>
+                                        </select>
+                                    </label>
+                                </div>
+                                <div className="editor-hint">Press Enter to add, Esc to cancel</div>
+                            </div>
+                        </div>
+                    </>
+                )}
             </main>
 
             <aside className="calendar-pane">

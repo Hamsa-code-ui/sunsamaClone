@@ -89,6 +89,20 @@ body {
   min-width: 0
 }
 
+/* editor/backdrop for Add task */
+.board{position:relative}
+.editor-backdrop{position:absolute;inset:0;background:rgba(0,0,0,0.45);z-index:60}
+.task-editor{position:absolute;left:50%;top:86px;transform:translateX(-50%);width:680px;background:#222226;border-radius:10px;padding:20px;box-shadow:0 18px 60px rgba(0,0,0,0.7);z-index:70;border:1px solid rgba(255,255,255,0.03)}
+.editor-title{width:100%;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.02);background:#1b1b1c;color:var(--text);font-size:16px;margin-bottom:10px}
+.editor-desc{width:100%;min-height:80px;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.02);background:#19191a;color:var(--muted);resize:vertical}
+.editor-footer{display:flex;justify-content:space-between;align-items:center;margin-top:12px}
+.editor-actions{display:flex;gap:10px}
+.editor-meta{color:var(--muted);font-size:13px}
+
+/* adjust add-task button look */
+.add-task{background:var(--card);padding:12px;border-radius:8px;color:var(--muted);margin-bottom:14px;box-shadow:0 1px 0 rgba(255,255,255,0.02);display:flex;align-items:center;justify-content:flex-start;border:none;cursor:pointer}
+.add-task:hover{background:#2a2a2b}
+
 .board-header {
   display: flex;
   align-items: center;
