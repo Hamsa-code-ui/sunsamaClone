@@ -1,18 +1,37 @@
 import './homepage.css'
-import type { DayItem } from './types'
 import type { Dispatch, SetStateAction } from 'react'
+import dayjs from 'dayjs'
+import CalendarSelect from './CalendarSelect'
 
-type EditorState = { open: boolean; dayId?: string; title?: string; tag?: string; timeEstimate?: number }
+type EditorState = { open: boolean; dayId?: string; title?: string; tag?: string; timeEstimate?: number; description?: string }
 
 type Props = {
     editor: EditorState;
     setEditor: Dispatch<SetStateAction<EditorState>>;
     closeEditor: () => void;
     saveEditor: () => void;
-    days: DayItem[];
 }
 
-export default function TaskEditor({ editor, setEditor, closeEditor, saveEditor, days }: Props) {
+export default function TaskEditor({ editor, setEditor, closeEditor, saveEditor }: Props) {
+    const dayString = editor.dayId
+    const todayString = dayjs().format('YYYY-MM-DD')
+    const todayInt = parseInt(todayString.replace(/-/g, ""), 10);
+    const dayInt = parseInt((dayString ?? "").replace(/-/g, ""), 10);
+    const differenz = dayInt - todayInt;
+    let displayDate : string;
+    if (dayInt === todayInt) {
+        displayDate = "Today";
+    } else if (differenz === 1) {
+        displayDate = "Tomorrow";
+    } else if (differenz === -1) {
+        displayDate = "Yesterday";
+    } else if (dayString) {
+        displayDate = dayjs(dayString).format("dddd, MMM D");
+    } else {
+        displayDate = dayjs().format("dddd, MMM D");
+    }
+    console.log("Display date:", displayDate);
+
     return (
         <>
             <div className="editor-backdrop" onClick={closeEditor} />
@@ -20,7 +39,7 @@ export default function TaskEditor({ editor, setEditor, closeEditor, saveEditor,
                 <input
                     className="editor-title"
                     placeholder="Task title"
-                    value={editor.title}
+                    value={editor.title ?? ''}
                     onChange={(e) => setEditor(s => ({ ...s, title: e.target.value }))}
                     onKeyDown={(e) => {
                         if (e.key === 'Escape') {
@@ -31,19 +50,16 @@ export default function TaskEditor({ editor, setEditor, closeEditor, saveEditor,
                         }
                     }}
                 />
+
+
                 <div className="editor-footer">
                     <div className="editor-left">
                         <label className="editor-label">
-                            <img src="/icons/calendar.png" alt="calendar" />
-                            <select className="editor-select" value={editor.dayId} onChange={(e) => setEditor(s => ({ ...s, dayId: e.target.value }))}>
-                                {days.map(d => (
-                                    <option key={d.id} value={d.id}>{d.name}</option>
-                                ))}
-                            </select>
+                            <CalendarSelect value={editor.dayId} onSelect={(iso) => setEditor(s => ({ ...s, dayId: iso }))} />
                         </label>
                         <label className="editor-label">
-                            Est. time
-                            <select className="editor-select" value={editor.timeEstimate} onChange={(e) => setEditor(s => ({ ...s, timeEstimate: Number(e.target.value) }))}>
+                            <img src="/icons/clock.png" alt="Est. time" className='clock-icon' />
+                            <select className="editor-select" value={editor.timeEstimate ?? 15} onChange={(e) => setEditor(s => ({ ...s, timeEstimate: Number(e.target.value) }))}>
                                 <option value={15}>15</option>
                                 <option value={30}>30</option>
                                 <option value={45}>45</option>
@@ -52,14 +68,13 @@ export default function TaskEditor({ editor, setEditor, closeEditor, saveEditor,
                         </label>
                         <label className="editor-label">
                             Tag
-                            <select className="editor-select" value={editor.tag} onChange={(e) => setEditor(s => ({ ...s, tag: e.target.value }))}>
+                            <select className="editor-select" value={editor.tag ?? '# work'} onChange={(e) => setEditor(s => ({ ...s, tag: e.target.value }))}>
                                 <option value="# work"># work</option>
                                 <option value="# personal"># personal</option>
                                 <option value="# errands"># errands</option>
                             </select>
                         </label>
                     </div>
-                    <div className="editor-hint">Press Enter to add, Esc to cancel</div>
                 </div>
             </div>
         </>

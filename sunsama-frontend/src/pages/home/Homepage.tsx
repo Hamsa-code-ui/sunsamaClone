@@ -98,6 +98,7 @@ export function HomePage() {
         }
     }
 
+
     return (
         <div className="app">
             <Sidebar />
@@ -119,7 +120,7 @@ export function HomePage() {
                 </section>
 
                 {editor.open && (
-                    <TaskEditor editor={editor} setEditor={setEditor} closeEditor={closeEditor} saveEditor={saveEditor} days={days} />
+                    <TaskEditor editor={editor} setEditor={setEditor} closeEditor={closeEditor} saveEditor={saveEditor}/>
                 )}
             </main>
 

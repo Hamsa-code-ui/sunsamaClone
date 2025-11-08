@@ -1,5 +1,5 @@
 import React from "react";
-import "./ProgressBar.css";
+import "./homepage.css";
 
 interface ProgressBarProps {
   progress: number; // Prozentwert (0 - 100)
